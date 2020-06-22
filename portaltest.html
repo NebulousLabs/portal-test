@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <title>Portal Test</title>
+  <head>
+    <meta charSet="utf-8"/>
+
+    <style>
+      form  { display: table;      }
+      p     { display: table-row;  }
+      label { display: table-cell; padding-right: 1em; }
+      input { display: table-cell; }
+    </style>
+  </head>
+
+  <body>
+    <h1>Portal Test</h1>
+
+    <form>
+      <p>
+        <label for="portal">Portal:</label>
+        <input type="text" name="portal" id="portal" value="https://" />
+      </p>
+      <br>
+      <p>
+        <label for="uploadAmt">Upload Amount (KiBs):</label>
+        <input type="number" name="uploadAmt" id="uploadAmt" value="4000" />
+      </p>
+      <br>
+      <p>
+        <input type="button" value="Test" id="submit"/>
+      </p>
+    </form>
+    <br>
+    <label id="upload1"></label>
+    <br>
+    <label id="upload2"></label>
+
+    <script type="text/javascript">
+      function randomString(length) {
+          return "a".repeat(1000).repeat(length)
+      }
+
+      function testUpload(portal, uploadAmt) {
+          var data = randomString(uploadAmt)
+          var blob = new Blob([data], {type: 'text/plain'});
+		  var formData = new FormData();
+		  formData.append('file', blob);
+
+          var startTime = new Date();
+          var timeDiff;
+		  fetch(portal+'/skynet/skyfile?filename=test.html', {
+			  method: 'POST',
+			  body: formData
+		  })
+			  .then((response) => {
+                  var endTime = new Date();
+                  timeDiff = endTime - startTime; // in ms
+
+                  return response.json();
+              })
+			  .then((result) => {
+                  var output1 = portal + '/' + result.skylink
+                  var output2 = '\nUpload of ' + uploadAmt + ' KiBs took ' + timeDiff + 'ms to complete';
+                  document.getElementById("upload1").innerHTML = output1;
+                  document.getElementById("upload2").innerHTML = output2;
+			  })
+			  .catch((error) => {
+			      console.error('Error:', error);
+                  document.getElementById("upload1").innerHTML = error;
+			  });
+      }
+
+      function testPortal() {
+          document.getElementById("upload1").innerHTML = "Running upload..."
+
+          var portal = document.getElementById("portal").value;
+          var uploadAmt = document.getElementById("uploadAmt").value;
+
+          testUpload(portal, uploadAmt)
+      }
+
+      var url = new URL(window.location.href);
+      document.getElementById("portal").value = url.href.substring(0, url.href.indexOf(url.pathname));
+      document.getElementById("submit").addEventListener('click', function() {
+          testPortal();
+      })
+    </script>
+</html>

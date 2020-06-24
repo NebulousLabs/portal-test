@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 
 <html lang="en">
-  <title>Portal Test</title>
   <head>
-    <meta charSet="utf-8"/>
+    <title>Portal Test</title>
+    <meta charset="utf-8"/>
 
-    <style>
+    <style type="text/css">
       form  { display: table;      }
       p     { display: table-row;  }
       label { display: table-cell; padding-right: 1em; }
@@ -16,74 +16,576 @@
   <body>
     <h1>Portal Test</h1>
 
+    <h2>Endpoint Test</h2>
+
     <form>
       <p>
-        <label for="portal">Portal:</label>
-        <input type="text" name="portal" id="portal" value="https://" />
+        <label for="portal"><b>Portal:</b></label>
+        <input type="text" name="portal" id="portal" value="https://siasky.net" />
       </p>
       <br>
+      <p>
+        <label for="uploadEndpoint">Upload Endpoint:</label>
+        <input type="text" name="uploadEndpoint" id="uploadEndpoint" value="/skynet/skyfile" />
+      </p>
+      <br>
+      <p>
+        <label for="downloadEndpoint">Download Endpoint:</label>
+        <input type="text" name="downloadEndpoint" id="downloadEndpoint" value="/" />
+      </p>
+      <br>
+      <p>
+        <label for="statsEndpoint">Stats Endpoint:</label>
+        <input type="text" name="statsEndpoint" id="statsEndpoint" value="/skynet/stats" />
+      </p>
+      <br>
+      <p>
+        <label for="blacklistEndpoint">Blacklist Endpoint:</label>
+        <input type="text" name="blacklistEndpoint" id="blacklistEndpoint" value="/skynet/blacklist" />
+      </p>
+      <br>
+      <p>
+        <label for="portalsEndpoint">Portals Endpoint:</label>
+        <input type="text" name="portalsEndpoint" id="portalsEndpoint" value="/skynet/portals" />
+      </p>
+      <br>
+      <p>
+        <label for="createSkykeyEndpoint">Create Skykey Endpoint:</label>
+        <input type="text" name="createSkykeyEndpoint" id="createSkykeyEndpoint" value="/skynet/createskykey" />
+      </p>
+      <br>
+      <p>
+        <label for="addSkykeyEndpoint">Add Skykey Endpoint:</label>
+        <input type="text" name="addSkykeyEndpoint" id="addSkykeyEndpoint" value="/skynet/addskykey" />
+      </p>
+      <br>
+      <p>
+        <label for="getSkykeysEndpoint">Get Skykeys Endpoint:</label>
+        <input type="text" name="getSkykeysEndpoint" id="getSkykeysEndpoint" value="/skynet/skykeys" />
+      </p>
+      <br>
+      <p>
+        <label for="getSkykeyEndpoint">Get Skykey Endpoint:</label>
+        <input type="text" name="getSkykeyEndpoint" id="getSkykeyEndpoint" value="/skynet/skykey" />
+      </p>
+      <br>
+      <p>
+        <label for="getSkykeyIdEndpoint">Get Skykey ID Endpoint:</label>
+        <input type="text" name="getSkykeyIdEndpoint" id="getSkykeyIdEndpoint" value="/skynet/skykeyid" />
+      </p>
+      <br>
+      <br>
+
       <p>
         <label for="uploadAmt">Upload Amount (KiBs):</label>
         <input type="number" name="uploadAmt" id="uploadAmt" value="4000" />
       </p>
       <br>
       <p>
-        <input type="button" value="Test" id="submit"/>
+        <input type="button" value="Run Test" id="submit"/>
       </p>
     </form>
     <br>
     <label id="upload1"></label>
     <br>
     <label id="upload2"></label>
+    <br>
+    <label id="metadata"></label>
+    <br>
+    <label id="download"></label>
+    <br>
+    <label id="stats"></label>
+    <br>
+    <label id="blacklist1"></label>
+    <br>
+    <label id="blacklist2"></label>
+    <br>
+    <label id="portals1"></label>
+    <br>
+    <label id="portals2"></label>
+    <br>
+    <label id="createSkykey"></label>
+    <br>
+    <label id="addSkykey"></label>
+    <br>
+    <label id="getSkykeys"></label>
+    <br>
+    <label id="getSkykey"></label>
+    <br>
+    <label id="getSkykeyId"></label>
 
     <script type="text/javascript">
+
+      const uploadfile = "test.html";
+      // const skylink = "_B2cJjFC9WgM5AvkCs9s-aDCjJ-xeijDxwJv81ub_FLBwg";
+      const keyname = "testkey";
+
       function randomString(length) {
-          return "a".repeat(1000).repeat(length)
+          return "a".repeat(1000).repeat(length);
       }
 
-      function testUpload(portal, uploadAmt) {
-          var data = randomString(uploadAmt)
-          var blob = new Blob([data], {type: 'text/plain'});
-		  var formData = new FormData();
-		  formData.append('file', blob);
+      async function testUpload(portal, endpoint, uploadAmt) {
+          document.getElementById("upload1").innerHTML = "Running upload...";
 
-          var startTime = new Date();
+          var data = randomString(uploadAmt);
+          var blob = new Blob([data], { type: "text/plain" });
+          var formData = new FormData();
+          formData.append("file", blob);
+
+          const startTime = new Date();
           var timeDiff;
-		  fetch(portal+'/skynet/skyfile?filename=test.html', {
-			  method: 'POST',
-			  body: formData
-		  })
-			  .then((response) => {
+
+          var skylink = fetch(portal + endpoint + "?filename=" + uploadfile, {
+              method: "POST",
+              body: formData,
+          })
+              .then((response) => {
                   var endTime = new Date();
                   timeDiff = endTime - startTime; // in ms
 
                   return response.json();
               })
-			  .then((result) => {
-                  var output1 = portal + '/' + result.skylink
-                  var output2 = '\nUpload of ' + uploadAmt + ' KiBs took ' + timeDiff + 'ms to complete';
+              .then((result) => {
+                  var skylink = result.skylink;
+                  var output1 = "Skylink: " + portal + "/" + skylink;
+                  var output2 =
+                      endpoint +
+                      " Upload test took " +
+                      timeDiff +
+                      "ms to complete";
                   document.getElementById("upload1").innerHTML = output1;
                   document.getElementById("upload2").innerHTML = output2;
-			  })
-			  .catch((error) => {
-			      console.error('Error:', error);
-                  document.getElementById("upload1").innerHTML = error;
-			  });
+
+                  return skylink;
+              })
+              .catch((error) => {
+                  console.error(endpoint + " error:", error);
+                  document.getElementById("upload1").innerHTML = endpoint + " " + error;
+              });
+          return skylink;
       }
 
-      function testPortal() {
-          document.getElementById("upload1").innerHTML = "Running upload..."
+      async function testMetadata(portal, endpoint, skylink) {
+          document.getElementById("metadata").innerHTML = "Getting file metadata...";
+
+          const startTime = new Date();
+          var timeDiff;
+          fetch(portal + endpoint + skylink, {
+              method: "HEAD",
+          })
+              .then((response) => {
+                  var endTime = new Date();
+                  timeDiff = endTime - startTime;
+
+                  var metadata = response.headers.get("skynet-file-metadata");
+                  var filename = JSON.parse(metadata).filename;
+                  if (filename != uploadfile) {
+                      throw "expected filename "+uploadfile+", got "+filename;
+                  }
+                  var output =
+                      endpoint +
+                      " Metadata test took " +
+                      timeDiff +
+                      "ms to complete";
+                  document.getElementById("metadata").innerHTML = output;
+              })
+              .catch((error) => {
+                  console.error(endpoint + " error:", error);
+                  document.getElementById("metadata").innerHTML = endpoint + " " + error;
+              });
+      }
+
+      async function testDownload(portal, endpoint, skylink) {
+          document.getElementById("download").innerHTML = "Downloading file...";
+
+          const startTime = new Date();
+          var timeDiff;
+
+          fetch(portal + endpoint + skylink, {
+              method: "GET",
+          })
+              .then((response) => {
+                  var endTime = new Date();
+                  timeDiff = endTime - startTime;
+
+                  var metadata = response.headers.get("skynet-file-metadata");
+                  var filename = JSON.parse(metadata).filename;
+                  if (filename != uploadfile) {
+                      throw "expected filename "+uploadfile+", got "+filename;
+                  }
+                  var output =
+                      endpoint +
+                      " Download test took " +
+                      timeDiff +
+                      "ms to complete";
+                  document.getElementById("download").innerHTML = output;
+              })
+              .catch((error) => {
+                  console.error(endpoint + " error:", error);
+                  document.getElementById("download").innerHTML = endpoint + " " + error;
+              });
+      }
+
+      async function testStats(portal, endpoint) {
+          document.getElementById("stats").innerHTML = "Getting stats...";
+
+          const startTime = new Date();
+          var timeDiff;
+
+          fetch(portal + endpoint, {
+              method: "GET",
+          })
+              .then((response) => {
+                  var endTime = new Date();
+                  timeDiff = endTime - startTime;
+
+                  return response.json();
+              })
+              .then((result) => {
+                  var version = result.version;
+                  var output =
+                      endpoint +
+                      " Stats test took " +
+                      timeDiff +
+                      "ms to complete. Version: " +
+                      version;
+                  document.getElementById("stats").innerHTML = output;
+              })
+              .catch((error) => {
+                  console.error(endpoint + " error:", error);
+                  document.getElementById("stats").innerHTML = endpoint + " " + error;
+              });
+      }
+
+      // Test that GET on the blacklist endpoint succeeds.
+      async function testBlacklistGet(portal, endpoint) {
+          document.getElementById("blacklist1").innerHTML = "Getting blacklist...";
+
+          const startTime = new Date();
+          var timeDiff;
+
+          fetch(portal + endpoint, {
+              method: "GET",
+          })
+              .then((response) => {
+                  var endTime = new Date();
+                  timeDiff = endTime - startTime;
+
+                  return response.json();
+              })
+              .then((result) => {
+                  var blacklist = result.blacklist;
+                  var output =
+                      endpoint +
+                      " Blacklist GET test took " +
+                      timeDiff +
+                      "ms to complete. Blacklist length: " +
+                      blacklist.length;
+                  document.getElementById("blacklist1").innerHTML = output;
+              })
+              .catch((error) => {
+                  console.error(endpoint + " error:", error);
+                  document.getElementById("blacklist1").innerHTML = endpoint + " " + error;
+              });
+      }
+
+      // Test that POST on the blacklist endpoint fails.
+      async function testBlacklistPost(portal, endpoint) {
+          document.getElementById("blacklist2").innerHTML = "Updating blacklist (should fail)...";
+
+          const startTime = new Date();
+          var timeDiff;
+
+          const body = '{"add" : ["GAC38Gan6YHVpLl-bfefa7aY85fn4C0EEOt5KJ6SPmEy4g"]}'
+          fetch(portal + endpoint, {
+              method: "POST",
+              body: body,
+          })
+              .then((result) => {
+                  error = endpoint + " error: expected blacklist POST to fail"
+                  console.error(error);
+                  document.getElementById("blacklist2").innerHTML = error
+              })
+              .catch((error) => {
+                  var output =
+                      endpoint +
+                      " Blacklist POST did not succeed (expected)";
+                  document.getElementById("blacklist2").innerHTML = output;
+              });
+      }
+
+      // Test that GET on the portals endpoint fails.
+      async function testPortalsGet(portal, endpoint) {
+          document.getElementById("portals1").innerHTML = "Getting portals list...";
+
+          const startTime = new Date();
+          var timeDiff;
+
+          fetch(portal + endpoint, {
+              method: "GET",
+          })
+              .then((response) => {
+                  var endTime = new Date();
+                  timeDiff = endTime - startTime;
+
+                  return response.json();
+              })
+              .then((result) => {
+                  var portals = result.portals;
+                  var output =
+                      endpoint +
+                      " Portals GET test took " +
+                      timeDiff +
+                      "ms to complete. Portals list length: " +
+                      portals.length;
+                  document.getElementById("portals1").innerHTML = output;
+              })
+              .catch((error) => {
+                  console.error(endpoint + " error:", error);
+                  document.getElementById("portals1").innerHTML = endpoint + " " + error;
+              });
+      }
+
+      // Test that POST on the portals endpoint fails.
+      async function testPortalsPost(portal, endpoint) {
+          document.getElementById("portals2").innerHTML = "Updating portals list (should fail)...";
+
+          const startTime = new Date();
+          var timeDiff;
+
+          const body = '{"add" : ["GAC38Gan6YHVpLl-bfefa7aY85fn4C0EEOt5KJ6SPmEy4g"]}'
+          fetch(portal + endpoint, {
+              method: "POST",
+              body: body,
+          })
+              .then((result) => {
+                  error = endpoint + " error: expected portals POST to fail"
+                  console.error(error);
+                  document.getElementById("portals2").innerHTML = error
+              })
+              .catch((error) => {
+                  var output =
+                      endpoint +
+                      " Portals POST did not succeed (expected)";
+                  document.getElementById("portals2").innerHTML = output;
+              });
+      }
+
+      async function testCreateSkykey(portal, endpoint) {
+          document.getElementById("createSkykey").innerHTML = "Creating skykey...";
+
+          const startTime = new Date();
+          var timeDiff;
+
+          fetch(portal + endpoint, {
+              method: "POST",
+              body: keyname,
+          })
+              .then((response) => {
+                  var endTime = new Date();
+                  timeDiff = endTime - startTime;
+
+                  return response.json();
+              })
+              .then((result) => {
+                  var skykey = result.portals;
+                  var output =
+                      endpoint +
+                      " Create skykey test took " +
+                      timeDiff +
+                      "ms to complete. Skykey: " +
+                      skykey;
+                  document.getElementById("createSkykey").innerHTML = output;
+
+                  return skykey;
+              })
+              .catch((error) => {
+                  console.error(endpoint + " error:", error);
+                  document.getElementById("createSkykey").innerHTML = endpoint + " " + error;
+              });
+      }
+
+      async function testAddSkykey(portal, endpoint, skykey) {
+          document.getElementById("addSkykey").innerHTML = "Adding skykey...";
+
+          skykey = skykey.substring(skykey.indexOf(":")+1, skykey.indexOf("?"));
+
+          const startTime = new Date();
+          var timeDiff;
+
+          var skykey = fetch(portal + endpoint + "?skykey=" + skykey, {
+              method: "POST",
+          })
+              .then((response) => {
+                  var endTime = new Date();
+                  timeDiff = endTime - startTime;
+
+                  return response.json();
+              })
+              .then((result) => {
+                  var skykey = result.portals;
+                  var output =
+                      endpoint + "?skykey=" + skykey +
+                      " Add skykey test took " +
+                      timeDiff +
+                      "ms to complete.";
+                  document.getElementById("addSkykey").innerHTML = output;
+              })
+              .catch((error) => {
+                  console.error(endpoint + " error:", error);
+                  document.getElementById("addSkykey").innerHTML = endpoint + " " + error;
+              });
+          return skykey;
+      }
+
+      async function testGetSkykeys(portal, endpoint, skykey) {
+          document.getElementById("getSkykeys").innerHTML = "Getting skykeys...";
+
+          const startTime = new Date();
+          var timeDiff;
+
+          fetch(portal + endpoint, {
+              method: "GET",
+          })
+              .then((response) => {
+                  var endTime = new Date();
+                  timeDiff = endTime - startTime;
+
+                  return response.json();
+              })
+              .then((result) => {
+                  var skykeys = result.skykeys;
+                  var output =
+                      endpoint +
+                      " Get skykeys test took " +
+                      timeDiff +
+                      "ms to complete. Skykeys length: " +
+                      skykeys.length;
+                  document.getElementById("getSkykeys").innerHTML = output;
+
+                  return skykey;
+              })
+              .catch((error) => {
+                  console.error(endpoint + " error:", error);
+                  document.getElementById("getSkykeys").innerHTML = endpoint + " " + error;
+              });
+      }
+
+      async function testGetSkykey(portal, endpoint, skykey) {
+          document.getElementById("getSkykey").innerHTML = "Getting skykey " + skykey + "...";
+
+          const startTime = new Date();
+          var timeDiff;
+
+          var id = fetch(portal + endpoint + "?name=" + keyname, {
+              method: "GET",
+          })
+              .then((response) => {
+                  var endTime = new Date();
+                  timeDiff = endTime - startTime;
+
+                  return response.json();
+              })
+              .then((result) => {
+                  if (result.skykey != skykey) {
+                      throw "expected skykey "+skykey+", got "+result.skykey;
+                  }
+                  var output =
+                      endpoint +
+                      " Get skykey test took " +
+                      timeDiff +
+                      "ms to complete. Skykey ID: " +
+                      result.id;
+                  document.getElementById("getSkykey").innerHTML = output;
+
+                  return result.id;
+              })
+              .catch((error) => {
+                  console.error(endpoint + " error:", error);
+                  document.getElementById("getSkykey").innerHTML = endpoint + " " + error;
+              });
+          return id;
+      }
+
+      async function testGetSkykeyId(portal, endpoint, skykeyid) {
+          document.getElementById("getSkykeyId").innerHTML = "Getting skykey ID " + skykey + "...";
+
+          const startTime = new Date();
+          var timeDiff;
+
+          fetch(portal + endpoint + "?name=" + keyname, {
+              method: "GET",
+          })
+              .then((response) => {
+                  var endTime = new Date();
+                  timeDiff = endTime - startTime;
+
+                  return response.json();
+              })
+              .then((result) => {
+                  if (result.skykeyid != skykeyid) {
+                      throw "expected skykey ID "+skykeyid+", got "+result.skykeyid;
+                  }
+                  var output =
+                      endpoint +
+                      " Get skykey ID test took " +
+                      timeDiff +
+                      "ms to complete. Skykey ID: " +
+                      result.skykeyid;
+                  document.getElementById("getSkykeyId").innerHTML = output;
+
+                  return result.id;
+              })
+              .catch((error) => {
+                  console.error(endpoint + " error:", error);
+                  document.getElementById("getSkykeyId").innerHTML = endpoint + " " + error;
+              });
+      }
+
+      async function testPortal() {
+          // Get inputs.
 
           var portal = document.getElementById("portal").value;
+          var uploadEndpoint = document.getElementById("uploadEndpoint").value;
+          var downloadEndpoint = document.getElementById("downloadEndpoint").value;
+          var statsEndpoint = document.getElementById("statsEndpoint").value;
+          var blacklistEndpoint = document.getElementById("blacklistEndpoint").value;
+          var portalsEndpoint = document.getElementById("portalsEndpoint").value;
+          var createSkykeyEndpoint = document.getElementById("createSkykeyEndpoint").value;
+          var addSkykeyEndpoint = document.getElementById("addSkykeyEndpoint").value;
+          var getSkykeysEndpoint = document.getElementById("getSkykeysEndpoint").value;
+          var getSkykeyEndpoint = document.getElementById("getSkykeyEndpoint").value;
+          var getSkykeyIdEndpoint = document.getElementById("getSkykeyIdEndpoint").value;
+
           var uploadAmt = document.getElementById("uploadAmt").value;
 
-          testUpload(portal, uploadAmt)
+          // Run tests.
+
+          var skylink = await testUpload(portal, uploadEndpoint, uploadAmt);
+          skylink = skylink.replace(portal, "");
+          await testMetadata(portal, downloadEndpoint, skylink);
+          await testDownload(portal, downloadEndpoint, skylink);
+          await testStats(portal, statsEndpoint);
+          await testBlacklistGet(portal, blacklistEndpoint);
+          await testBlacklistPost(portal, blacklistEndpoint);
+          await testPortalsGet(portal, portalsEndpoint);
+          await testPortalsPost(portal, portalsEndpoint);
+          var skykey = await testCreateSkykey(portal, createSkykeyEndpoint);
+          await testAddSkykey(portal, addSkykeyEndpoint, skykey);
+          await testGetSkykeys(portal, getSkykeysEndpoint, skykey);
+          var skykeyid = await testGetSkykey(portal, getSkykeyEndpoint, skykey);
+          await testGetSkykeyId(portal, getSkykeyIdEndpoint, skykeyid);
       }
 
       var url = new URL(window.location.href);
-      document.getElementById("portal").value = url.href.substring(0, url.href.indexOf(url.pathname));
-      document.getElementById("submit").addEventListener('click', function() {
+      document.getElementById("portal").value = url.href.substring(
+          0,
+          url.href.indexOf(url.pathname)
+      );
+      document.getElementById("submit").addEventListener("click", function () {
           testPortal();
-      })
+      });
+
     </script>
+  </body>
 </html>

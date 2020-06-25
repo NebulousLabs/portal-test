@@ -6,17 +6,18 @@
     <meta charset="utf-8"/>
 
     <style type="text/css">
+      /* Form */
       form  { display: table;      }
       p     { display: table-row;  }
       label { display: table-cell; padding-right: 1em; }
       input { display: table-cell; }
+
+      image { max-width: 500px; }
     </style>
   </head>
 
   <body>
     <h1>Portal Test</h1>
-
-    <h2>Endpoint Test</h2>
 
     <form>
       <p>
@@ -76,6 +77,8 @@
       <br>
       <br>
 
+      <h2>Endpoint Test</h2>
+
       <p>
         <label for="uploadAmt">Upload Amount (KiBs):</label>
         <input type="number" name="uploadAmt" id="uploadAmt" value="4000" />
@@ -85,6 +88,7 @@
         <input type="button" value="Run Test" id="submit"/>
       </p>
     </form>
+
     <br>
     <label id="upload1"></label>
     <br>
@@ -114,10 +118,30 @@
     <br>
     <label id="getSkykeyId"></label>
 
+    <h2>Directory Test</h2>
+
+    <form method="post" enctype="multipart/form-data">
+      <input name="filesToUpload[]" id="filesToUpload" type="file" multiple="" />
+      <br>
+      <br>
+      <p>
+        <input type="button" value="Run Test" id="submit-directory"/>
+      </p>
+    </form>
+
+    <br>
+    <label id="directory1"></label>
+    <br>
+    <label id="directory2"></label>
+    <br>
+    <label id="directory3"></label>
+
+    <label id="end" />
+
     <script type="text/javascript">
 
       const uploadfile = "test.html";
-      // const skylink = "_B2cJjFC9WgM5AvkCs9s-aDCjJ-xeijDxwJv81ub_FLBwg";
+      // const skylink = "_AzaXbaPt7jRhHTDwZs5ScY_hjCXMUdmYYEDUE89vsj5lg";
       const keyname = "testkey";
 
       function randomString(length) {
@@ -135,7 +159,7 @@
           const startTime = new Date();
           var timeDiff;
 
-          var skylink = fetch(portal + endpoint + "?filename=" + uploadfile, {
+          var skylink = await fetch(portal + endpoint + "?filename=" + uploadfile, {
               method: "POST",
               body: formData,
           })
@@ -413,7 +437,7 @@
           const startTime = new Date();
           var timeDiff;
 
-          var skykey = fetch(portal + endpoint + "?skykey=" + skykey, {
+          var skykey = await fetch(portal + endpoint + "?skykey=" + skykey, {
               method: "POST",
           })
               .then((response) => {
@@ -477,7 +501,7 @@
           const startTime = new Date();
           var timeDiff;
 
-          var id = fetch(portal + endpoint + "?name=" + keyname, {
+          var id = await fetch(portal + endpoint + "?name=" + keyname, {
               method: "GET",
           })
               .then((response) => {
@@ -542,22 +566,21 @@
               });
       }
 
-      async function testPortal() {
+      async function testPortalEndpoints() {
           // Get inputs.
 
-          var portal = document.getElementById("portal").value;
-          var uploadEndpoint = document.getElementById("uploadEndpoint").value;
-          var downloadEndpoint = document.getElementById("downloadEndpoint").value;
-          var statsEndpoint = document.getElementById("statsEndpoint").value;
-          var blacklistEndpoint = document.getElementById("blacklistEndpoint").value;
-          var portalsEndpoint = document.getElementById("portalsEndpoint").value;
-          var createSkykeyEndpoint = document.getElementById("createSkykeyEndpoint").value;
-          var addSkykeyEndpoint = document.getElementById("addSkykeyEndpoint").value;
-          var getSkykeysEndpoint = document.getElementById("getSkykeysEndpoint").value;
-          var getSkykeyEndpoint = document.getElementById("getSkykeyEndpoint").value;
-          var getSkykeyIdEndpoint = document.getElementById("getSkykeyIdEndpoint").value;
-
-          var uploadAmt = document.getElementById("uploadAmt").value;
+          const portal = document.getElementById("portal").value;
+          const uploadEndpoint = document.getElementById("uploadEndpoint").value;
+          const downloadEndpoint = document.getElementById("downloadEndpoint").value;
+          const statsEndpoint = document.getElementById("statsEndpoint").value;
+          const blacklistEndpoint = document.getElementById("blacklistEndpoint").value;
+          const portalsEndpoint = document.getElementById("portalsEndpoint").value;
+          const createSkykeyEndpoint = document.getElementById("createSkykeyEndpoint").value;
+          const addSkykeyEndpoint = document.getElementById("addSkykeyEndpoint").value;
+          const getSkykeysEndpoint = document.getElementById("getSkykeysEndpoint").value;
+          const getSkykeyEndpoint = document.getElementById("getSkykeyEndpoint").value;
+          const getSkykeyIdEndpoint = document.getElementById("getSkykeyIdEndpoint").value;
+          const uploadAmt = document.getElementById("uploadAmt").value;
 
           // Run tests.
 
@@ -577,13 +600,127 @@
           await testGetSkykeyId(portal, getSkykeyIdEndpoint, skykeyid);
       }
 
+      async function testDirectoryUpload(portal, endpoint, input) {
+          const numFiles = input.files.length;
+          var files = new Array(numFiles);
+
+          document.getElementById("directory1").innerHTML = "Uploading "+numFiles+" files...";
+
+          var formData = new FormData();
+          for (var i = 0; i < numFiles; i++) {
+              const name = input.files[i].name;
+              formData.append(
+                  "files[]",
+                  input.files[i],
+                  { filepath: name }
+              );
+              files[i] = name;
+          }
+
+          const startTime = new Date();
+          var timeDiff;
+
+          var skylink = await fetch(portal + endpoint + "?filename=" + uploadfile, {
+              method: "POST",
+              body: formData,
+          })
+              .then((response) => {
+                  var endTime = new Date();
+                  timeDiff = endTime - startTime;
+
+                  return response.json();
+              })
+              .then((result) => {
+                  var skylink = result.skylink;
+                  var output =
+                      endpoint +
+                      " Directory upload test took " +
+                      timeDiff +
+                      "ms to complete. Skylink: " +
+                      skylink;
+                  document.getElementById("directory1").innerHTML = output;
+
+                  return skylink;
+              })
+              .catch((error) => {
+                  console.error(endpoint + " error:", error);
+                  document.getElementById("directory1").innerHTML = endpoint + " " + error;
+              });
+          return { skylink, files };
+      }
+
+      // Test downloading an entire directory at once.
+      async function testDirectoryDownload(portal, endpoint, skylink) {
+          document.getElementById("directory2").innerHTML = "Downloading directory...";
+
+          const startTime = new Date();
+          var timeDiff;
+
+          fetch(portal + endpoint + skylink + "?format=concat", {
+              method: "GET",
+          })
+              .then(() => {
+                  var endTime = new Date();
+                  timeDiff = endTime - startTime;
+
+                  var output =
+                      endpoint +
+                      " Directory download test took " +
+                      timeDiff +
+                      "ms to complete";
+                  document.getElementById("directory2").innerHTML = output;
+              })
+              .catch((error) => {
+                  console.error(endpoint + " error:", error);
+                  document.getElementById("directory2").innerHTML = endpoint + " " + error;
+              });
+      }
+
+      // Test downloading individual files from a directory.
+      async function testDirectoryDownloadFiles(portal, endpoint, skylink, files) {
+          document.getElementById("directory3").innerHTML = "Downloading individual directory files...";
+
+          const startTime = new Date();
+          var timeDiff;
+
+          var gets = new Array(files.length);
+          for (var i = 0; i < files.length; i++) {
+              // Create new img element.
+              var img = document.createElement("img");
+              img.src = portal + endpoint + skylink + "/" + files[i];
+              // Insert img at the bottom of the page.
+              const end = document.getElementById("end")
+              end.parentNode.insertBefore(img, end);
+          }
+      }
+
+      async function testPortalDirectory() {
+          // Get inputs.
+
+          const portal = document.getElementById("portal").value;
+          const uploadEndpoint = document.getElementById("uploadEndpoint").value;
+          const downloadEndpoint = document.getElementById("downloadEndpoint").value;
+          const input = document.getElementById('filesToUpload');
+
+          // Run tests.
+
+          const result = await testDirectoryUpload(portal, uploadEndpoint, input);
+          const skylink = result.skylink.replace(portal, "");
+          const files = result.files;
+          await testDirectoryDownload(portal, downloadEndpoint, skylink);
+          await testDirectoryDownloadFiles(portal, downloadEndpoint, skylink, files);
+      }
+
       var url = new URL(window.location.href);
       document.getElementById("portal").value = url.href.substring(
           0,
           url.href.indexOf(url.pathname)
       );
       document.getElementById("submit").addEventListener("click", function () {
-          testPortal();
+          testPortalEndpoints();
+      });
+      document.getElementById("submit-directory").addEventListener("click", function () {
+          testPortalDirectory();
       });
 
     </script>

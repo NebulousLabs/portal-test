@@ -121,7 +121,14 @@
     <h2>Directory Test</h2>
 
     <form method="post" enctype="multipart/form-data">
-      <input name="filesToUpload[]" id="filesToUpload" type="file" multiple="" />
+      <p>
+        <input name="filesToUpload[]" id="filesToUpload" type="file" multiple="" />
+      </p>
+      <br>
+      <p>
+        <label for="directoryPath">Path:</label>
+        <input type="text" name="directoryPath" id="directoryPath" value="" />
+      </p>
       <br>
       <br>
       <p>
@@ -140,7 +147,7 @@
 
     <script type="text/javascript">
 
-      const uploadfile = "test.html";
+      const uploadfile = "test";
       // const skylink = "_AzaXbaPt7jRhHTDwZs5ScY_hjCXMUdmYYEDUE89vsj5lg";
       const keyname = "testkey";
 
@@ -600,7 +607,7 @@
           await testGetSkykeyId(portal, getSkykeyIdEndpoint, skykeyid);
       }
 
-      async function testDirectoryUpload(portal, endpoint, input) {
+      async function testDirectoryUpload(portal, endpoint, input, path) {
           const numFiles = input.files.length;
           var files = new Array(numFiles);
 
@@ -620,7 +627,7 @@
           const startTime = new Date();
           var timeDiff;
 
-          var skylink = await fetch(portal + endpoint + "?filename=" + uploadfile, {
+          var skylink = await fetch(portal + endpoint + "/" + path + "?filename=" + uploadfile, {
               method: "POST",
               body: formData,
           })
@@ -677,7 +684,7 @@
       }
 
       // Test downloading individual files from a directory.
-      async function testDirectoryDownloadFiles(portal, endpoint, skylink, files) {
+      async function testDirectoryDownloadFiles(portal, endpoint, skylink, files, path) {
           document.getElementById("directory3").innerHTML = "Downloading individual directory files...";
 
           const startTime = new Date();
@@ -687,9 +694,9 @@
           for (var i = 0; i < files.length; i++) {
               // Create new img element.
               var img = document.createElement("img");
-              img.src = portal + endpoint + skylink + "/" + files[i];
+              img.src = portal + endpoint + skylink + "/" + path + "/" + files[i];
               // Insert img at the bottom of the page.
-              const end = document.getElementById("end")
+              const end = document.getElementById("end");
               end.parentNode.insertBefore(img, end);
           }
       }
@@ -701,14 +708,15 @@
           const uploadEndpoint = document.getElementById("uploadEndpoint").value;
           const downloadEndpoint = document.getElementById("downloadEndpoint").value;
           const input = document.getElementById('filesToUpload');
+          const path = document.getElementById('directoryPath').value;
 
           // Run tests.
 
-          const result = await testDirectoryUpload(portal, uploadEndpoint, input);
+          const result = await testDirectoryUpload(portal, uploadEndpoint, input, path);
           const skylink = result.skylink.replace(portal, "");
           const files = result.files;
           await testDirectoryDownload(portal, downloadEndpoint, skylink);
-          await testDirectoryDownloadFiles(portal, downloadEndpoint, skylink, files);
+          await testDirectoryDownloadFiles(portal, downloadEndpoint, skylink, files, path);
       }
 
       var url = new URL(window.location.href);

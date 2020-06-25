@@ -619,7 +619,7 @@
               formData.append(
                   "files[]",
                   input.files[i],
-                  { filepath: name }
+                  name,
               );
               files[i] = name;
           }
@@ -684,7 +684,7 @@
       }
 
       // Test downloading individual files from a directory.
-      async function testDirectoryDownloadFiles(portal, endpoint, skylink, files, path) {
+      async function testDirectoryDownloadFiles(portal, endpoint, skylink, files) {
           document.getElementById("directory3").innerHTML = "Downloading individual directory files...";
 
           const startTime = new Date();
@@ -694,7 +694,7 @@
           for (var i = 0; i < files.length; i++) {
               // Create new img element.
               var img = document.createElement("img");
-              img.src = portal + endpoint + skylink + "/" + path + "/" + files[i];
+              img.src = portal + endpoint + skylink + "/" + files[i];
               // Insert img at the bottom of the page.
               const end = document.getElementById("end");
               end.parentNode.insertBefore(img, end);
@@ -716,7 +716,7 @@
           const skylink = result.skylink.replace(portal, "");
           const files = result.files;
           await testDirectoryDownload(portal, downloadEndpoint, skylink);
-          await testDirectoryDownloadFiles(portal, downloadEndpoint, skylink, files, path);
+          await testDirectoryDownloadFiles(portal, downloadEndpoint, skylink, files);
       }
 
       var url = new URL(window.location.href);
